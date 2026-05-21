@@ -1,9 +1,7 @@
 import type { CoinTicker, MarketCoin } from '../types'
 
-/** Proxy no dev evita CORS; em prod usa API direta com cache no hook */
-const BASE = import.meta.env.DEV
-  ? '/api/coingecko'
-  : 'https://api.coingecko.com/api/v3'
+/** Sempre via /api/coingecko (proxy Vite no dev, serverless na Vercel) — evita CORS */
+const BASE = '/api/coingecko'
 
 type CoinGeckoMarketRaw = Omit<
   MarketCoin,
