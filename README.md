@@ -2,6 +2,13 @@
 
 Dashboard completo de criptomoedas com ranking de mercado, portfólio pessoal, gráficos on-chain e notícias em português.
 
+## Portfólio
+
+| Projeto | Repositório | Demo |
+|---------|-------------|------|
+| **Este dashboard** | [github.com/rafaelcostr/Crypto-Dashboard](https://github.com/rafaelcostr/Crypto-Dashboard) | [crypto-dashboard-iota-peach.vercel.app](https://crypto-dashboard-iota-peach.vercel.app) |
+| **WhatsApp Atendimento Bot** | [github.com/rafaelcostr/whatsapp-atendimento-bot](https://github.com/rafaelcostr/whatsapp-atendimento-bot) | Bot com menu + IA (Groq) |
+
 ## Demonstração
 
 **Site online:** [crypto-dashboard-iota-peach.vercel.app](https://crypto-dashboard-iota-peach.vercel.app)
