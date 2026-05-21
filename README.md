@@ -95,18 +95,25 @@ VITE_OPENAI_BASE_URL=
 VITE_OPENAI_MODEL=
 ```
 
-## Estrutura
+## Estrutura (módulos)
 
 ```
 src/
-  api/           CoinGecko, Binance, on-chain, news
-  components/    UI, gráficos, top movers, busca
-  context/       Tema, mercados, gráficos
-  hooks/         Dados e estado
-  pages/         Dashboard, charts, news, portfolio
-api/             Serverless Vercel
-public/          PWA manifest, service worker
+  app/              Rotas (App.tsx)
+  shared/           Tipos, utils, tema, layout, UI comum
+  features/
+    auth/           Login, cadastro, conta
+    markets/        Ranking, favoritos, preços ao vivo
+    charts/         Gráficos on-chain
+    portfolio/      Carteira, alertas, compras
+    news/           Notícias RSS
+    coin/           Página da moeda
+    admin/          Painel admin
+api/                Serverless Vercel
+docs/ARCHITECTURE.md  Detalhes da arquitetura
 ```
+
+Imports: use `@/features/...` e `@/shared/...` (ver `docs/ARCHITECTURE.md`).
 
 ## Roadmap concluído
 

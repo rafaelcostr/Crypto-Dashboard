@@ -1,10 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
+import App from '@/app/App'
+import { ErrorBoundary } from '@/shared/components/ErrorBoundary'
+import { ThemeProvider } from '@/shared/context/ThemeContext'
 import './index.css'
-import App from './App.tsx'
-import { ErrorBoundary } from './components/ErrorBoundary.tsx'
-import { ThemeProvider } from './context/ThemeContext.tsx'
 
 const rootEl = document.getElementById('root')
 if (!rootEl) {

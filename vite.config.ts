@@ -1,5 +1,9 @@
 import type { IncomingMessage, ServerResponse } from 'http'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import { defineConfig, type Plugin } from 'vite'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 // @ts-expect-error middleware ESM sem tipos
@@ -125,6 +129,11 @@ function authDevProxy(): Plugin {
 
 export default defineConfig({
   plugins: [react(), tailwindcss(), blockchainChartDevProxy(), authDevProxy()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
+  },
   server: { proxy: rssProxies },
   preview: { proxy: rssProxies },
 })
