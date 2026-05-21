@@ -1,80 +1,60 @@
-import { useState } from 'react'
-import { AlertsPanel } from './components/AlertsPanel'
-import { Header } from './components/Header'
-import { LiveTicker } from './components/LiveTicker'
-import { MarketTable } from './components/MarketTable'
-import { NewsFeed } from './components/NewsFeed'
-import { useAlerts } from './hooks/useAlerts'
-import { useLivePrices } from './hooks/useLivePrices'
-import { useMarkets } from './hooks/useMarkets'
-import { useNews } from './hooks/useNews'
-import { useNewsSummary } from './hooks/useNewsSummary'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { ProtectedRoute } from './components/ProtectedRoute'
+import { ChartsLayout } from './layout/ChartsLayout'
+import { MainLayout } from './layout/MainLayout'
+import { ChartDetailPage } from './pages/ChartDetailPage'
+import { DashboardPage } from './pages/DashboardPage'
+import { AccountPage } from './pages/AccountPage'
+import { AdminPage } from './pages/AdminPage'
+import { LoginPage } from './pages/LoginPage'
+import { RegisterSuccessPage } from './pages/RegisterSuccessPage'
+import { VerifyEmailPage } from './pages/VerifyEmailPage'
+import { NewsPage } from './pages/NewsPage'
+import { CoinPage } from './pages/CoinPage'
+import { PortfolioPage } from './pages/PortfolioPage'
+import { RegisterPage } from './pages/RegisterPage'
 
 export default function App() {
-  const { coins, loading, error, refresh } = useMarkets(50)
-  const { prices, connected } = useLivePrices()
-  const { articles, loading: newsLoading, error: newsError, refresh: refreshNews } = useNews()
-  const { summaries, summarize, hasAiKey } = useNewsSummary()
-  const {
-    alerts,
-    addAlert,
-    removeAlert,
-    clearTriggered,
-    notifications,
-    dismissNotification,
-  } = useAlerts(prices)
-
-  const [alertPreset, setAlertPreset] = useState<{
-    symbol: string
-    name: string
-    price: number
-  } | null>(null)
-
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <Header wsConnected={connected} lastUpdate={loading ? undefined : 'atualizado'} />
-
-      <div className="mt-6 space-y-6">
-        <LiveTicker prices={prices} />
-
-        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-          <MarketTable
-            coins={coins}
-            livePrices={prices}
-            loading={loading}
-            error={error}
-            onRefresh={refresh}
-            onCreateAlert={(symbol, name, price) =>
-              setAlertPreset({ symbol, name, price })
-            }
-          />
-          <AlertsPanel
-            alerts={alerts}
-            notifications={notifications}
-            onAdd={addAlert}
-            onRemove={removeAlert}
-            onClearTriggered={clearTriggered}
-            onDismissNotification={dismissNotification}
-            preset={alertPreset}
-            onClearPreset={() => setAlertPreset(null)}
-          />
-        </div>
-
-        <NewsFeed
-          articles={articles}
-          loading={newsLoading}
-          error={newsError}
-          onRefresh={refreshNews}
-          summaries={summaries}
-          onSummarize={summarize}
-          hasAiKey={hasAiKey}
+    <Routes>
+      <Route path="/" element={<MainLayout />}>
+        <Route index element={<DashboardPage />} />
+        <Route path="charts" element={<ChartsLayout />}>
+          <Route index element={<Navigate to="mvrv-zscore" replace />} />
+          <Route path=":chartId" element={<ChartDetailPage />} />
+        </Route>
+        <Route path="coin/:coinId" element={<CoinPage />} />
+        <Route path="news" element={<NewsPage />} />
+        <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
+        <Route path="register/success" element={<RegisterSuccessPage />} />
+        <Route path="verify-email" element={<VerifyEmailPage />} />
+        <Route
+          path="account"
+          element={
+            <ProtectedRoute>
+              <AccountPage />
+            </ProtectedRoute>
+          }
         />
-      </div>
-
-      <footer className="mt-10 border-t border-[var(--color-border)] pt-6 text-center text-xs text-[var(--color-muted)]">
-        Dados: CoinGecko (ranking) · Binance WebSocket (tempo real) · CryptoCompare (notícias).
-        Não constitui aconselhamento financeiro.
-      </footer>
-    </div>
+        <Route
+          path="admin"
+          element={
+            <ProtectedRoute>
+              <AdminPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="portfolio"
+          element={
+            <ProtectedRoute>
+              <PortfolioPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
+    </Routes>
   )
 }

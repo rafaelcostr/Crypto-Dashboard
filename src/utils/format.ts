@@ -1,4 +1,13 @@
-export function formatPrice(value: number, currency = 'USD'): string {
+export function toNum(value: number | null | undefined, fallback = 0): number {
+  if (value == null || Number.isNaN(value)) return fallback
+  return value
+}
+
+export function formatPrice(
+  value: number | null | undefined,
+  currency = 'USD',
+): string {
+  if (value == null || Number.isNaN(value)) return '—'
   if (value >= 1_000_000) {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -23,12 +32,18 @@ export function formatPrice(value: number, currency = 'USD'): string {
   }).format(value)
 }
 
-export function formatPercent(value: number): string {
+export function formatSharePercent(value: number): string {
+  return `${value.toFixed(1)}%`
+}
+
+export function formatPercent(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value)) return '—'
   const sign = value >= 0 ? '+' : ''
   return `${sign}${value.toFixed(2)}%`
 }
 
-export function formatCompact(value: number): string {
+export function formatCompact(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value)) return '—'
   return new Intl.NumberFormat('pt-BR', {
     notation: 'compact',
     maximumFractionDigits: 2,

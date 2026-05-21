@@ -1,4 +1,4 @@
-import { ExternalLink, RefreshCw, Sparkles } from 'lucide-react'
+import { ExternalLink, Newspaper, RefreshCw, Sparkles } from 'lucide-react'
 import type { CryptoNews, NewsSummary } from '../types'
 import { timeAgo } from '../utils/format'
 
@@ -12,6 +12,12 @@ interface NewsFeedProps {
   hasAiKey: boolean
 }
 
+function excerpt(body: string, max = 140): string {
+  const clean = body.replace(/\s+/g, ' ').trim()
+  if (clean.length <= max) return clean
+  return `${clean.slice(0, max)}…`
+}
+
 export function NewsFeed({
   articles,
   loading,
@@ -22,14 +28,22 @@ export function NewsFeed({
   hasAiKey,
 }: NewsFeedProps) {
   return (
-    <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]">
-      <div className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-4">
-        <div>
-          <h2 className="text-lg font-semibold">Notícias Crypto</h2>
-          <p className="text-xs text-[var(--color-muted)]">
-            CryptoCompare
-            {hasAiKey ? ' · resumo com IA' : ' · resumo local (adicione VITE_OPENAI_API_KEY para IA)'}
-          </p>
+    <section
+      id="noticias"
+      className="scroll-mt-8 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border)] px-5 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--color-accent)]/15 text-[var(--color-accent)]">
+            <Newspaper className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold">Notícias Crypto</h2>
+            <p className="text-xs text-[var(--color-muted)]">
+              Livecoins · Portal do Bitcoin · CriptoFácil · BeInCrypto BR · Portal Cripto
+              {hasAiKey ? ' · resumo IA em português' : ' · resumo local em português'}
+            </p>
+          </div>
         </div>
         <button
           type="button"
@@ -38,16 +52,35 @@ export function NewsFeed({
           className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-sm transition hover:bg-[var(--color-panel-hover)] disabled:opacity-50"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          Atualizar
         </button>
       </div>
 
       {error && (
-        <p className="px-5 py-3 text-sm text-[var(--color-danger)]">{error}</p>
+        <div className="mx-5 mt-4 rounded-lg border border-[var(--color-danger)]/40 bg-[var(--color-danger)]/10 px-4 py-3 text-sm text-[var(--color-danger)]">
+          <p>{error}</p>
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="mt-2 text-xs underline hover:no-underline"
+          >
+            Tentar novamente
+          </button>
+        </div>
       )}
 
-      <div className="grid gap-4 p-5 sm:grid-cols-2">
+      <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3">
         {loading && articles.length === 0 ? (
-          <p className="col-span-2 text-center text-[var(--color-muted)]">Carregando notícias...</p>
+          Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-64 animate-pulse rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)]"
+            />
+          ))
+        ) : articles.length === 0 ? (
+          <p className="col-span-full py-8 text-center text-[var(--color-muted)]">
+            Nenhuma notícia encontrada. Clique em Atualizar.
+          </p>
         ) : (
           articles.map((article) => {
             const summaryState = summaries[article.id]
@@ -56,13 +89,20 @@ export function NewsFeed({
                 key={article.id}
                 className="flex flex-col overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] transition hover:border-[var(--color-accent)]/30"
               >
-                {article.imageUrl && (
+                {article.imageUrl ? (
                   <img
                     src={article.imageUrl}
                     alt=""
                     className="h-36 w-full object-cover"
                     loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none'
+                    }}
                   />
+                ) : (
+                  <div className="flex h-20 items-center justify-center bg-[var(--color-panel)] text-[var(--color-muted)]">
+                    <Newspaper className="h-8 w-8 opacity-40" />
+                  </div>
                 )}
                 <div className="flex flex-1 flex-col p-4">
                   <div className="mb-2 flex flex-wrap gap-1">
@@ -75,11 +115,14 @@ export function NewsFeed({
                       </span>
                     ))}
                   </div>
-                  <h3 className="mb-1 line-clamp-2 text-sm font-semibold leading-snug">
+                  <h3 className="mb-1 line-clamp-3 text-sm font-semibold leading-snug">
                     {article.title}
                   </h3>
-                  <p className="mb-3 text-xs text-[var(--color-muted)]">
+                  <p className="mb-2 text-xs text-[var(--color-muted)]">
                     {article.source} · {timeAgo(article.publishedAt)}
+                  </p>
+                  <p className="mb-3 line-clamp-3 text-xs leading-relaxed text-[var(--color-muted)]">
+                    {excerpt(article.body)}
                   </p>
 
                   {summaryState?.summary && (

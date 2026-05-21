@@ -12,6 +12,14 @@ export interface MarketCoin {
   low_24h: number
 }
 
+export interface FavoriteCoin {
+  coinId: string
+  symbol: string
+  name: string
+  image: string
+  addedAt: number
+}
+
 export interface LivePrice {
   symbol: string
   price: number
@@ -19,7 +27,7 @@ export interface LivePrice {
   volume: number
 }
 
-export type AlertCondition = 'above' | 'below'
+export type AlertCondition = 'above' | 'below' | 'pct_up' | 'pct_down'
 
 export interface PriceAlert {
   id: string
@@ -27,9 +35,24 @@ export interface PriceAlert {
   name: string
   condition: AlertCondition
   targetPrice: number
+  /** Para pct_up / pct_down: variação % (ex: 5 = 5%) */
+  percentChange?: number
+  /** Janela em minutos para alerta percentual (ex: 60 = 1h) */
+  windowMinutes?: number
   createdAt: number
   triggered?: boolean
   triggeredAt?: number
+  /** Preço de referência ao criar alerta % */
+  referencePrice?: number
+}
+
+export interface AlertHistoryEntry {
+  id: string
+  alertId?: string
+  symbol: string
+  name?: string
+  message: string
+  triggeredAt: number
 }
 
 export interface CryptoNews {
@@ -38,15 +61,45 @@ export interface CryptoNews {
   body: string
   url: string
   source: string
-  imageUrl?: string
   publishedAt: number
   categories: string[]
+  imageUrl?: string
 }
 
 export interface NewsSummary {
   articleId: string
   summary: string
   loading: boolean
-  error?: string
   source: 'ai' | 'local'
+  error?: string
+}
+
+export interface CoinTicker {
+  exchange: string
+  pair: string
+  price: number
+  volume24h: number
+  spread: number | null
+  trustScore: string
+  tradeUrl: string | null
+}
+
+export interface WatchlistEntry {
+  symbol: string
+  name: string
+  image: string
+  quantity: number
+  avgBuyPrice: number
+  addedAt: number
+}
+
+/** Registro de cada compra (data + quantidade) */
+export interface PortfolioPurchase {
+  id: string
+  symbol: string
+  name: string
+  image: string
+  quantity: number
+  priceUsd: number
+  purchasedAt: number
 }

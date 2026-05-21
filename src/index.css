@@ -8,10 +8,24 @@
   --color-panel-hover: #181f2a;
   --color-border: #1e2736;
   --color-muted: #8b9bb4;
+  --color-text: #e8edf5;
   --color-accent: #00d4aa;
   --color-accent-dim: #00a884;
   --color-danger: #ff4d6d;
   --color-warning: #ffc857;
+}
+
+[data-theme='light'] {
+  --color-surface: #f0f4f8;
+  --color-panel: #ffffff;
+  --color-panel-hover: #f6f8fb;
+  --color-border: #d8e0ea;
+  --color-muted: #5a6b82;
+  --color-text: #111827;
+  --color-accent: #059669;
+  --color-accent-dim: #047857;
+  --color-danger: #dc2626;
+  --color-warning: #d97706;
 }
 
 * {
@@ -24,14 +38,23 @@ body,
   min-height: 100%;
 }
 
+#root {
+  width: 100%;
+}
+
 body {
   margin: 0;
   font-family: var(--font-sans);
   background: var(--color-surface);
-  color: #e8edf5;
+  color: var(--color-text);
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 212, 170, 0.12), transparent),
-    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(99, 102, 241, 0.08), transparent);
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 212, 170, 0.1), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(99, 102, 241, 0.06), transparent);
+}
+
+[data-theme='light'] body {
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(5, 150, 105, 0.08), transparent);
 }
 
 ::-webkit-scrollbar {
@@ -50,4 +73,21 @@ body {
 
 .negative {
   color: var(--color-danger);
+}
+
+@media (max-width: 640px) {
+  main {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  table {
+    font-size: 0.8125rem;
+  }
+
+  th,
+  td {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
 }

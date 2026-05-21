@@ -15,8 +15,22 @@ export function summarizeLocally(article: CryptoNews): string {
   return summary || article.title
 }
 
-/** Resumo com IA via API OpenAI-compatible (opcional) */
+/** Resumo via servidor Vercel (/api/summarize) ou cliente OpenAI */
 export async function summarizeWithAI(article: CryptoNews): Promise<string> {
+  try {
+    const res = await fetch('/api/summarize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: article.title, body: article.body }),
+    })
+    if (res.ok) {
+      const json = (await res.json()) as { summary?: string }
+      if (json.summary) return json.summary
+    }
+  } catch {
+    /* fallback cliente */
+  }
+
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY
   if (!apiKey) {
     return summarizeLocally(article)

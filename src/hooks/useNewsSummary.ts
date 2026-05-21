@@ -4,7 +4,9 @@ import { summarizeLocally, summarizeWithAI } from '../utils/summarize'
 
 export function useNewsSummary() {
   const [summaries, setSummaries] = useState<Record<string, NewsSummary>>({})
-  const hasAiKey = Boolean(import.meta.env.VITE_OPENAI_API_KEY)
+  const hasAiKey =
+    Boolean(import.meta.env.VITE_OPENAI_API_KEY) ||
+    import.meta.env.PROD
 
   const summarize = useCallback(async (article: CryptoNews) => {
     setSummaries((prev) => ({
