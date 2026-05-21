@@ -10,7 +10,13 @@ export function verificationExpiresAt() {
 }
 
 function getAppBaseUrl() {
-  return (process.env.APP_URL || 'http://localhost:5173').replace(/\/$/, '')
+  const explicit = process.env.APP_URL?.trim()
+  if (explicit) return explicit.replace(/\/$/, '')
+  // Vercel define VERCEL_URL automaticamente (ex.: crypto-dashboard-xxx.vercel.app)
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`.replace(/\/$/, '')
+  }
+  return 'http://localhost:5173'
 }
 
 function isSmtpConfigured() {
