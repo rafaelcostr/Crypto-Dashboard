@@ -49,7 +49,7 @@ Copie `.env.example` para `.env` e configure:
 - `SMTP_*` — para enviar confirmação de cadastro (senha de app no Gmail)
 - `AUTH_JWT_SECRET` — chave longa em produção
 
-Dados dos usuários: `data/auth-store.json` (local / `npm run dev`).
+Dados dos usuários: `data/auth-store.json` (local). Na Vercel grava em `/tmp` (servidor read-only); para produção séria use banco (Postgres/Supabase).
 
 ### Testes
 

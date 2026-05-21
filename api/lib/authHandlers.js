@@ -41,7 +41,7 @@ async function findUserByToken(token) {
 
 export async function handleRegister(body) {
   const email = normalizeEmail(body.email)
-  const password = String(body.password || '')
+  const password = String(body.password || '').trim()
   const name = String(body.name || '').trim()
 
   if (!email || !email.includes('@')) {
@@ -90,7 +90,7 @@ export async function handleRegister(body) {
 
 export async function handleLogin(body) {
   const email = normalizeEmail(body.email)
-  const password = String(body.password || '')
+  const password = String(body.password || '').trim()
 
   const store = await readStore()
   const user = store.users.find((u) => u.email === email)
@@ -309,4 +309,40 @@ export async function handleUpdateProfile(token, body) {
   await writeStore(store)
 
   return { status: 200, data: { user: publicUser(user) } }
+}
+
+/** Só funciona se PASSWORD_RESET_KEY estiver definido no servidor (use na Vercel e remova depois). */
+export async function handlePasswordResetWithKey(body) {
+  const resetKey = process.env.PASSWORD_RESET_KEY
+  if (!resetKey || resetKey.length < 16) {
+    return { status: 404, data: { error: 'Não disponível' } }
+  }
+
+  const email = normalizeEmail(body.email)
+  const password = String(body.password || '').trim()
+  const key = String(body.resetKey || '').trim()
+
+  if (key !== resetKey) {
+    return { status: 403, data: { error: 'Chave inválida' } }
+  }
+  if (!email || !email.includes('@')) {
+    return { status: 400, data: { error: 'E-mail inválido' } }
+  }
+  if (password.length < 6) {
+    return { status: 400, data: { error: 'Senha deve ter pelo menos 6 caracteres' } }
+  }
+
+  const store = await readStore()
+  const user = store.users.find((u) => u.email === email)
+  if (!user) {
+    return { status: 404, data: { error: 'Usuário não encontrado neste servidor' } }
+  }
+
+  user.passwordHash = await hashPassword(password)
+  user.emailVerified = true
+  delete user.verificationToken
+  delete user.verificationTokenExpires
+  await writeStore(store)
+
+  return { status: 200, data: { message: 'Senha atualizada. Faça login com a senha nova.' } }
 }

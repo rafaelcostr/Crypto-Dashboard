@@ -4,6 +4,7 @@ import {
   handleLogin,
   handleMe,
   handleRegister,
+  handlePasswordResetWithKey,
   handleResendVerification,
   handleSaveUserData,
   handleUpdateProfile,
@@ -107,6 +108,11 @@ export function createAuthDevMiddleware() {
       }
       if (path === '/api/auth/update-profile' && req.method === 'POST') {
         const result = await handleUpdateProfile(token, await readBody(req))
+        sendJson(res, result.status, result.data)
+        return
+      }
+      if (path === '/api/auth/reset-password-key' && req.method === 'POST') {
+        const result = await handlePasswordResetWithKey(await readBody(req))
         sendJson(res, result.status, result.data)
         return
       }

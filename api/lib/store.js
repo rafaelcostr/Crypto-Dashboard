@@ -3,18 +3,33 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const DATA_DIR = path.join(__dirname, '../../data')
-const STORE_FILE = path.join(DATA_DIR, 'auth-store.json')
 
 const DEFAULT_STORE = {
   users: [],
   userData: {},
 }
 
+/** Caminho gravável: local = data/ ; Vercel = /tmp (filesystem do deploy é read-only). */
+function resolveStoreFile() {
+  if (process.env.AUTH_STORE_PATH) {
+    return process.env.AUTH_STORE_PATH
+  }
+  if (process.env.VERCEL) {
+    return '/tmp/crypto-dashboard-auth-store.json'
+  }
+  return path.join(__dirname, '../../data/auth-store.json')
+}
+
+function getStoreFile() {
+  return resolveStoreFile()
+}
+
 export async function readStore() {
+  const storeFile = getStoreFile()
+  const dataDir = path.dirname(storeFile)
   try {
-    await fs.mkdir(DATA_DIR, { recursive: true })
-    const raw = await fs.readFile(STORE_FILE, 'utf8')
+    await fs.mkdir(dataDir, { recursive: true })
+    const raw = await fs.readFile(storeFile, 'utf8')
     const parsed = JSON.parse(raw)
     return {
       users: Array.isArray(parsed.users) ? parsed.users : [],
@@ -26,8 +41,10 @@ export async function readStore() {
 }
 
 export async function writeStore(store) {
-  await fs.mkdir(DATA_DIR, { recursive: true })
-  await fs.writeFile(STORE_FILE, JSON.stringify(store, null, 2), 'utf8')
+  const storeFile = getStoreFile()
+  const dataDir = path.dirname(storeFile)
+  await fs.mkdir(dataDir, { recursive: true })
+  await fs.writeFile(storeFile, JSON.stringify(store, null, 2), 'utf8')
 }
 
 export function defaultUserData() {

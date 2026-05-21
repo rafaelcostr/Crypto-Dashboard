@@ -5,6 +5,7 @@ import {
   handleLogin,
   handleMe,
   handleRegister,
+  handlePasswordResetWithKey,
   handleResendVerification,
   handleUpdateProfile,
   handleVerifyEmail,
@@ -86,6 +87,12 @@ export default async function handler(req, res) {
       const token = getBearerToken(req)
       if (!token) return res.status(401).json({ error: 'Não autorizado' })
       const result = await handleUpdateProfile(token, await parseJsonBody(req))
+      return res.status(result.status).json(result.data)
+    }
+
+    if (route === 'reset-password-key' && req.method === 'POST') {
+      setCors(res, 'POST, OPTIONS')
+      const result = await handlePasswordResetWithKey(await parseJsonBody(req))
       return res.status(result.status).json(result.data)
     }
 
