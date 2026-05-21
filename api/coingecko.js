@@ -1,21 +1,26 @@
-/** Proxy CoinGecko com headers (rewrite da Vercel recebe 403 sem User-Agent / API key). */
-
+/**
+ * Proxy CoinGecko (Vercel).
+ * Rotas públicas /api/coingecko/* são reescritas para ?cgpath=... via vercel.json
+ */
 function resolveUpstreamUrl(req) {
   let subpath = ''
-  const pathParam = req.query.path
+  const proxy = req.query.cgpath ?? req.query.path
 
-  if (Array.isArray(pathParam)) {
-    subpath = pathParam.map((s) => decodeURIComponent(String(s))).join('/')
-  } else if (typeof pathParam === 'string' && pathParam) {
-    subpath = decodeURIComponent(pathParam)
-  } else {
-    const match = (req.url || '').match(/\/api\/coingecko\/([^?#]*)/)
-    if (match?.[1]) subpath = decodeURIComponent(match[1])
+  if (Array.isArray(proxy)) {
+    subpath = proxy.map((s) => decodeURIComponent(String(s))).join('/')
+  } else if (typeof proxy === 'string' && proxy) {
+    subpath = decodeURIComponent(proxy)
+  }
+
+  if (!subpath) {
+    const raw = req.url || ''
+    const url = new URL(raw.startsWith('http') ? raw : `https://x${raw}`)
+    subpath = url.pathname.replace(/^\/api\/coingecko\/?/, '')
   }
 
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(req.query || {})) {
-    if (key === 'path') continue
+    if (key === 'cgpath' || key === 'path') continue
     if (Array.isArray(value)) {
       for (const v of value) params.append(key, String(v))
     } else if (value != null) {
@@ -24,7 +29,7 @@ function resolveUpstreamUrl(req) {
   }
 
   const qs = params.toString()
-  const base = `https://api.coingecko.com/api/v3/${subpath}`
+  const base = `https://api.coingecko.com/api/v3/${subpath.replace(/^\/+/, '')}`
   return qs ? `${base}?${qs}` : base
 }
 
@@ -41,7 +46,7 @@ export default async function handler(req, res) {
   }
 
   const upstream = resolveUpstreamUrl(req)
-  if (!upstream.includes('/api/v3/') || upstream.endsWith('/api/v3/')) {
+  if (!subpathValid(upstream)) {
     return res.status(400).json({ error: 'Rota CoinGecko inválida' })
   }
 
@@ -49,7 +54,7 @@ export default async function handler(req, res) {
     const headers = {
       Accept: 'application/json',
       'Accept-Language': 'en',
-      'User-Agent': 'CryptoDashboard/1.1 (+https://crypto-dashboard-iota-peach.vercel.app)',
+      'User-Agent': 'CryptoDashboard/1.1 (+https://vercel.app)',
     }
 
     const apiKey = process.env.COINGECKO_API_KEY?.trim()
@@ -58,7 +63,6 @@ export default async function handler(req, res) {
     }
 
     const response = await fetch(upstream, { headers })
-
     res.statusCode = response.status
     res.setHeader('Content-Type', 'application/json')
     res.end(await response.text())
@@ -66,5 +70,15 @@ export default async function handler(req, res) {
     return res.status(502).json({
       error: e instanceof Error ? e.message : 'Erro ao buscar CoinGecko',
     })
+  }
+}
+
+function subpathValid(upstream) {
+  try {
+    const u = new URL(upstream)
+    const after = u.pathname.replace(/^\/api\/v3\/?/, '')
+    return Boolean(after && after !== '/')
+  } catch {
+    return false
   }
 }

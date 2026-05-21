@@ -3,6 +3,10 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
+    {
+      "source": "/api/coingecko/:path*",
+      "destination": "/api/coingecko?cgpath=:path*"
+    },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
