@@ -112,12 +112,32 @@ npm run build     # build de produção
 |----------|-------------|-----------|
 | `AUTH_JWT_SECRET` | Sim | Chave longa (32+ caracteres) |
 | `APP_URL` | Sim | URL do site (ex.: `https://seu-app.vercel.app`) |
+| `ALLOWED_ORIGIN` | Recomendado | Domínio autorizado para CORS em produção |
 | `ADMIN_EMAIL` | Sim | E-mail do administrador |
 | `COINGECKO_API_KEY` | Recomendado | Chave demo grátis (evita erro 403) |
 | `SMTP_*` | Opcional | Envio de e-mail de confirmação |
 | `OPENAI_API_KEY` | Opcional | Resumo de notícias com IA |
 
 ---
+
+## Segurança / Security
+
+- `AUTH_JWT_SECRET` é obrigatório em produção e deve ter ao menos 32 caracteres.
+- `APP_URL` define links de confirmação e também serve como origem confiável para o app.
+- `ALLOWED_ORIGIN` permite restringir explicitamente CORS ao domínio do frontend em produção.
+- `AUTH_STORE_PATH` pode ser usado para configurar onde os usuários são persistidos, localmente ou em `/tmp` no Vercel.
+- As senhas agora exigem pelo menos 8 caracteres e devem incluir letras e números.
+- Endpoints de autenticação possuem proteção básica contra excesso de requisições (rate limiting).
+
+- `AUTH_STORE_DB` (opcional): habilita persistência via SQLite em vez do arquivo JSON.
+  - Instale a dependência nativa manualmente quando usar em produção:
+    ```bash
+    npm install better-sqlite3
+    ```
+  - Defina a variável `AUTH_STORE_DB` apontando para o arquivo `.db` desejado, por exemplo `data/auth-store.db`.
+  - Observação: `better-sqlite3` é um módulo nativo — em Windows/Linux pode ser necessário o Build Tools/compilador C++.
+
+> Consulte `docs/SECURITY.md` para recomendações de deploy seguro e configuração de produção. / See `docs/SECURITY.md` for secure deployment guidance.
 
 ## Estrutura do código
 

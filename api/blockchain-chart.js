@@ -1,6 +1,8 @@
 /** Proxy Blockchain.com — /api/blockchain-chart?name=hash-rate&timespan=2years */
+import { requireCors } from './lib/cors.js'
+
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
+  if (!requireCors(req, res, 'GET, OPTIONS')) return
 
   const chart = req.query.name || req.query.chart
   const timespan =

@@ -1,11 +1,9 @@
 import { getBearerToken, parseJsonBody } from '../lib/auth.js'
+import { requireCors } from '../lib/cors.js'
 import { handleSaveUserData } from '../lib/authHandlers.js'
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'PUT, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-
+  if (!requireCors(req, res, 'PUT, OPTIONS')) return
   if (req.method === 'OPTIONS') return res.status(200).end()
   if (req.method !== 'PUT') return res.status(405).json({ error: 'Método não permitido' })
 

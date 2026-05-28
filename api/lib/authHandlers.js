@@ -8,6 +8,8 @@ import {
 import { hashPassword, signToken, verifyPassword, verifyToken } from './auth.js'
 import { defaultUserData, readStore, writeStore } from './store.js'
 
+const MIN_PASSWORD_LENGTH = 8
+
 function normalizeEmail(email) {
   return String(email || '')
     .trim()
@@ -30,6 +32,14 @@ function publicUser(user) {
   }
 }
 
+function isValidPassword(password) {
+  return (
+    password.length >= MIN_PASSWORD_LENGTH &&
+    /[A-Za-z]/.test(password) &&
+    /\d/.test(password)
+  )
+}
+
 async function findUserByToken(token) {
   const userId = await verifyToken(token)
   if (!userId) return null
@@ -47,8 +57,13 @@ export async function handleRegister(body) {
   if (!email || !email.includes('@')) {
     return { status: 400, data: { error: 'E-mail inválido' } }
   }
-  if (password.length < 6) {
-    return { status: 400, data: { error: 'Senha deve ter pelo menos 6 caracteres' } }
+  if (!isValidPassword(password)) {
+    return {
+      status: 400,
+      data: {
+        error: `Senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres e incluir letras e números`,
+      },
+    }
   }
 
   const store = await readStore()
@@ -241,8 +256,13 @@ export async function handleChangePassword(token, body) {
   const currentPassword = String(body.currentPassword || '')
   const newPassword = String(body.newPassword || '')
 
-  if (newPassword.length < 6) {
-    return { status: 400, data: { error: 'Nova senha deve ter pelo menos 6 caracteres' } }
+  if (!isValidPassword(newPassword)) {
+    return {
+      status: 400,
+      data: {
+        error: `Nova senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres e incluir letras e números`,
+      },
+    }
   }
 
   const { user, store } = ctx
@@ -328,8 +348,13 @@ export async function handlePasswordResetWithKey(body) {
   if (!email || !email.includes('@')) {
     return { status: 400, data: { error: 'E-mail inválido' } }
   }
-  if (password.length < 6) {
-    return { status: 400, data: { error: 'Senha deve ter pelo menos 6 caracteres' } }
+  if (!isValidPassword(password)) {
+    return {
+      status: 400,
+      data: {
+        error: `Senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres e incluir letras e números`,
+      },
+    }
   }
 
   const store = await readStore()

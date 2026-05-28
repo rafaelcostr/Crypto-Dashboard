@@ -1,3 +1,5 @@
+import { requireCors } from './lib/cors.js'
+
 /**
  * Proxy CoinGecko (Vercel).
  * Rotas públicas /api/coingecko/* são reescritas para ?cgpath=... via vercel.json
@@ -33,13 +35,11 @@ function resolveUpstreamUrl(req) {
   return qs ? `${base}?${qs}` : base
 }
 
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
+import { requireCors } from './lib/cors.js'
 
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
-    return res.status(200).end()
-  }
+export default async function handler(req, res) {
+  if (!requireCors(req, res, 'GET, OPTIONS')) return
+  if (req.method === 'OPTIONS') return res.status(200).end()
 
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Método não permitido' })

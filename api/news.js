@@ -1,4 +1,5 @@
 import { XMLParser } from 'fast-xml-parser'
+import { requireCors } from './lib/cors.js'
 
 const FEEDS_PT = [
   { url: 'https://livecoins.com.br/feed/', source: 'Livecoins' },
@@ -65,7 +66,8 @@ function parseFeed(xml, source) {
 }
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
+  if (!requireCors(req, res, 'GET, OPTIONS')) return
+  if (req.method === 'OPTIONS') return res.status(200).end()
   const limit = Math.min(Number(req.query?.limit) || 18, 30)
 
   const results = await Promise.allSettled(

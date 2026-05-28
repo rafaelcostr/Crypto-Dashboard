@@ -1,3 +1,5 @@
+import { requireCors } from '../../../lib/cors.js'
+
 /** Proxy Blockchain.com — /api/blockchain/charts/:chart */
 function chartFromRequest(req) {
   const q = req.query.chart
@@ -8,7 +10,7 @@ function chartFromRequest(req) {
 }
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
+  if (!requireCors(req, res, 'GET, OPTIONS')) return
 
   const chart = chartFromRequest(req)
   const timespan =

@@ -69,7 +69,15 @@ Configurado em `tsconfig.app.json` e `vite.config.ts`.
 
 - Máximo 12 funções no plano Hobby → rotas agrupadas (`auth/[[...path]]`, `coingecko.js` + rewrite).
 - Dados de usuário: `data/auth-store.json` (local) ou `/tmp` (Vercel).
-- Variáveis: `AUTH_JWT_SECRET`, `APP_URL`, `ADMIN_EMAIL`, `COINGECKO_API_KEY`, SMTP opcional.
+- Variáveis: `AUTH_JWT_SECRET`, `APP_URL`, `ALLOWED_ORIGIN`, `ADMIN_EMAIL`, `COINGECKO_API_KEY`, SMTP opcional.
+
+## Segurança
+
+- `AUTH_JWT_SECRET` é necessário em produção e deve ter pelo menos 32 caracteres.
+- CORS está restrito ao domínio do app usando `ALLOWED_ORIGIN` ou `APP_URL`.
+- Senhas exigem 8+ caracteres com letras e números.
+- Endpoints de autenticação têm rate limiting básico para reduzir abuso.
+- `AUTH_STORE_PATH` controla o armazenamento de usuários local ou em `/tmp` na Vercel.
 
 ## Manutenção
 

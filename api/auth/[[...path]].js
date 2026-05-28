@@ -1,4 +1,6 @@
 import { getBearerToken, parseJsonBody } from '../lib/auth.js'
+import { requireCors } from '../lib/cors.js'
+import { enforceRateLimit } from '../lib/rateLimit.js'
 import {
   handleChangeEmail,
   handleChangePassword,
@@ -19,35 +21,28 @@ function authRoute(req) {
   return match?.[1] ? decodeURIComponent(match[1]) : ''
 }
 
-function setCors(res, methods) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', methods)
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-}
-
 export default async function handler(req, res) {
   const route = authRoute(req)
+  if (!requireCors(req, res, 'GET, POST, OPTIONS')) return
 
   if (req.method === 'OPTIONS') {
-    setCors(res, 'GET, POST, OPTIONS')
     return res.status(200).end()
   }
 
   try {
     if (route === 'register' && req.method === 'POST') {
-      setCors(res, 'POST, OPTIONS')
+      if (!enforceRateLimit(req, res, 'register', 5, 60_000)) return
       const result = await handleRegister(await parseJsonBody(req))
       return res.status(result.status).json(result.data)
     }
 
     if (route === 'login' && req.method === 'POST') {
-      setCors(res, 'POST, OPTIONS')
+      if (!enforceRateLimit(req, res, 'login', 10, 60_000)) return
       const result = await handleLogin(await parseJsonBody(req))
       return res.status(result.status).json(result.data)
     }
 
     if (route === 'me' && req.method === 'GET') {
-      setCors(res, 'GET, OPTIONS')
       const token = getBearerToken(req)
       if (!token) return res.status(401).json({ error: 'Token ausente' })
       const result = await handleMe(token)
@@ -55,19 +50,17 @@ export default async function handler(req, res) {
     }
 
     if (route === 'verify-email' && req.method === 'GET') {
-      setCors(res, 'GET, OPTIONS')
       const result = await handleVerifyEmail(req.query)
       return res.status(result.status).json(result.data)
     }
 
     if (route === 'resend-verification' && req.method === 'POST') {
-      setCors(res, 'POST, OPTIONS')
+      if (!enforceRateLimit(req, res, 'resend-verification', 5, 60_000)) return
       const result = await handleResendVerification(await parseJsonBody(req))
       return res.status(result.status).json(result.data)
     }
 
     if (route === 'change-password' && req.method === 'POST') {
-      setCors(res, 'POST, OPTIONS')
       const token = getBearerToken(req)
       if (!token) return res.status(401).json({ error: 'Não autorizado' })
       const result = await handleChangePassword(token, await parseJsonBody(req))
@@ -75,7 +68,6 @@ export default async function handler(req, res) {
     }
 
     if (route === 'change-email' && req.method === 'POST') {
-      setCors(res, 'POST, OPTIONS')
       const token = getBearerToken(req)
       if (!token) return res.status(401).json({ error: 'Não autorizado' })
       const result = await handleChangeEmail(token, await parseJsonBody(req))
@@ -83,7 +75,6 @@ export default async function handler(req, res) {
     }
 
     if (route === 'update-profile' && req.method === 'POST') {
-      setCors(res, 'POST, OPTIONS')
       const token = getBearerToken(req)
       if (!token) return res.status(401).json({ error: 'Não autorizado' })
       const result = await handleUpdateProfile(token, await parseJsonBody(req))
@@ -91,7 +82,7 @@ export default async function handler(req, res) {
     }
 
     if (route === 'reset-password-key' && req.method === 'POST') {
-      setCors(res, 'POST, OPTIONS')
+      if (!enforceRateLimit(req, res, 'reset-password-key', 5, 60_000)) return
       const result = await handlePasswordResetWithKey(await parseJsonBody(req))
       return res.status(result.status).json(result.data)
     }

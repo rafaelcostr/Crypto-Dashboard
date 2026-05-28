@@ -1,9 +1,16 @@
 import bcrypt from 'bcryptjs'
 import * as jose from 'jose'
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.AUTH_JWT_SECRET || 'crypto-dashboard-dev-secret-change-in-production-32',
-)
+const JWT_SECRET = process.env.AUTH_JWT_SECRET
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  throw new Error(
+    'AUTH_JWT_SECRET must be configured and contain at least 32 characters.',
+  )
+}
+
+function getJwtSecret() {
+  return new TextEncoder().encode(JWT_SECRET)
+}
 
 export async function hashPassword(password) {
   return bcrypt.hash(password, 10)
@@ -18,12 +25,12 @@ export async function signToken(userId) {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('30d')
-    .sign(JWT_SECRET)
+    .sign(getJwtSecret())
 }
 
 export async function verifyToken(token) {
   try {
-    const { payload } = await jose.jwtVerify(token, JWT_SECRET)
+    const { payload } = await jose.jwtVerify(token, getJwtSecret())
     const sub = payload.sub
     return typeof sub === 'string' ? sub : null
   } catch {
