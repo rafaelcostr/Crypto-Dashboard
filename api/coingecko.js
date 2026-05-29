@@ -1,4 +1,10 @@
 import { requireCors } from './lib/cors.js'
+import {
+  isMarketsUpstream,
+  readUpstreamCache,
+  readUpstreamCacheStale,
+  writeUpstreamCache,
+} from './lib/coingeckoCache.js'
 
 /**
  * Proxy CoinGecko (Vercel).
@@ -35,7 +41,22 @@ function resolveUpstreamUrl(req) {
   return qs ? `${base}?${qs}` : base
 }
 
-import { requireCors } from './lib/cors.js'
+function subpathValid(upstream) {
+  try {
+    const u = new URL(upstream)
+    const after = u.pathname.replace(/^\/api\/v3\/?/, '')
+    return Boolean(after && after !== '/')
+  } catch {
+    return false
+  }
+}
+
+function sendCached(res, cached) {
+  res.statusCode = cached.status
+  res.setHeader('Content-Type', 'application/json')
+  res.setHeader('X-Cache', 'HIT')
+  res.end(cached.body)
+}
 
 export default async function handler(req, res) {
   if (!requireCors(req, res, 'GET, OPTIONS')) return
@@ -48,6 +69,13 @@ export default async function handler(req, res) {
   const upstream = resolveUpstreamUrl(req)
   if (!subpathValid(upstream)) {
     return res.status(400).json({ error: 'Rota CoinGecko inválida' })
+  }
+
+  const marketsRoute = isMarketsUpstream(upstream)
+  const fresh = marketsRoute ? readUpstreamCache(upstream) : null
+  if (fresh) {
+    sendCached(res, fresh)
+    return
   }
 
   try {
@@ -63,22 +91,34 @@ export default async function handler(req, res) {
     }
 
     const response = await fetch(upstream, { headers })
+    const body = await response.text()
+
+    if (marketsRoute && response.status === 200) {
+      writeUpstreamCache(upstream, response.status, body)
+    }
+
+    if (marketsRoute && response.status === 429) {
+      const stale = readUpstreamCacheStale(upstream)
+      if (stale) {
+        sendCached(res, stale)
+        return
+      }
+    }
+
     res.statusCode = response.status
     res.setHeader('Content-Type', 'application/json')
-    res.end(await response.text())
+    res.setHeader('X-Cache', 'MISS')
+    res.end(body)
   } catch (e) {
+    if (marketsRoute) {
+      const stale = readUpstreamCacheStale(upstream)
+      if (stale) {
+        sendCached(res, stale)
+        return
+      }
+    }
     return res.status(502).json({
       error: e instanceof Error ? e.message : 'Erro ao buscar CoinGecko',
     })
-  }
-}
-
-function subpathValid(upstream) {
-  try {
-    const u = new URL(upstream)
-    const after = u.pathname.replace(/^\/api\/v3\/?/, '')
-    return Boolean(after && after !== '/')
-  } catch {
-    return false
   }
 }

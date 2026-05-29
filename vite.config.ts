@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'http'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { defineConfig, type Plugin } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 import react from '@vitejs/plugin-react'
@@ -54,11 +54,22 @@ function blockchainChartDevProxy(): Plugin {
   }
 }
 
-const rssProxies: Record<string, object> = {
+function coingeckoProxyHeaders(apiKey: string | undefined): Record<string, string> {
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'User-Agent': 'CryptoDashboard/1.1 (dev)',
+  }
+  if (apiKey) headers['x-cg-demo-api-key'] = apiKey
+  return headers
+}
+
+function buildRssProxies(apiKey: string | undefined): Record<string, object> {
+  return {
   '/api/coingecko': {
     target: 'https://api.coingecko.com',
     changeOrigin: true,
     rewrite: (path: string) => path.replace(/^\/api\/coingecko/, '/api/v3'),
+    headers: coingeckoProxyHeaders(apiKey),
   },
   '/api/blockchain': {
     target: 'https://api.blockchain.info',
@@ -116,6 +127,7 @@ const rssProxies: Record<string, object> = {
     changeOrigin: true,
     rewrite: () => '/feed',
   },
+  }
 }
 
 function authDevProxy(): Plugin {
@@ -127,13 +139,18 @@ function authDevProxy(): Plugin {
   }
 }
 
-export default defineConfig({
-  plugins: [react(), tailwindcss(), blockchainChartDevProxy(), authDevProxy()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  const proxies = buildRssProxies(env.COINGECKO_API_KEY?.trim())
+
+  return {
+    plugins: [react(), tailwindcss(), blockchainChartDevProxy(), authDevProxy()],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, 'src'),
+      },
     },
-  },
-  server: { proxy: rssProxies },
-  preview: { proxy: rssProxies },
+    server: { proxy: proxies },
+    preview: { proxy: proxies },
+  }
 })

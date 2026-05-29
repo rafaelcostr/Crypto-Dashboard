@@ -27,10 +27,17 @@ function normalizeCoin(raw: CoinGeckoMarketRaw): MarketCoin {
   }
 }
 
-export async function fetchMarketRanking(
-  perPage = 100,
-  page = 1,
-): Promise<MarketCoin[]> {
+const PAGE_DELAY_MS = 2500
+const MAX_RETRIES = 4
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms))
+}
+
+async function fetchMarketRankingOnce(
+  perPage: number,
+  page: number,
+): Promise<{ coins: MarketCoin[]; status: number }> {
   const params = new URLSearchParams({
     vs_currency: 'usd',
     order: 'market_cap_desc',
@@ -42,31 +49,83 @@ export async function fetchMarketRanking(
 
   const res = await fetch(`${BASE}/coins/markets?${params}`)
   if (res.status === 429) {
+    return { coins: [], status: 429 }
+  }
+  if (!res.ok) {
+    throw new Error(`CoinGecko: ${res.status}`)
+  }
+  const data = (await res.json()) as CoinGeckoMarketRaw[]
+  return { coins: data.map(normalizeCoin), status: res.status }
+}
+
+export async function fetchMarketRanking(
+  perPage = 100,
+  page = 1,
+): Promise<MarketCoin[]> {
+  let lastStatus = 0
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    const { coins, status } = await fetchMarketRankingOnce(perPage, page)
+    lastStatus = status
+    if (status === 429) {
+      await sleep(1500 * (attempt + 1))
+      continue
+    }
+    return coins
+  }
+  if (lastStatus === 429) {
     throw new Error(
-      'CoinGecko: limite de requisições (429). Aguarde 1 minuto e atualize.',
+      'CoinGecko: limite de requisições (429). Aguarde 1–2 minutos e atualize.',
     )
   }
-  if (!res.ok) throw new Error(`CoinGecko: ${res.status}`)
-  const data = (await res.json()) as CoinGeckoMarketRaw[]
-  return data.map(normalizeCoin)
+  throw new Error(`CoinGecko: ${lastStatus}`)
+}
+
+export type FetchMarketRankingTopResult = {
+  coins: MarketCoin[]
+  partial: boolean
 }
 
 /** Busca top N moedas (paginação automática, até 250 por página — limite CoinGecko) */
-export async function fetchMarketRankingTop(total = 1000): Promise<MarketCoin[]> {
+export async function fetchMarketRankingTop(
+  total = 1000,
+): Promise<FetchMarketRankingTopResult> {
   const perPage = 250
   const pages = Math.ceil(total / perPage)
   const all: MarketCoin[] = []
 
   for (let page = 1; page <= pages; page++) {
-    const batch = await fetchMarketRanking(perPage, page)
+    let batch: MarketCoin[] = []
+    let got429 = false
+
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      const result = await fetchMarketRankingOnce(perPage, page)
+      if (result.status === 429) {
+        got429 = true
+        await sleep(2000 * (attempt + 1))
+        continue
+      }
+      batch = result.coins
+      got429 = false
+      break
+    }
+
+    if (got429 && batch.length === 0) {
+      if (all.length > 0) {
+        return { coins: all.slice(0, total), partial: true }
+      }
+      throw new Error(
+        'CoinGecko: limite de requisições (429). Aguarde 1–2 minutos e atualize.',
+      )
+    }
+
     all.push(...batch)
     if (batch.length < perPage) break
     if (page < pages) {
-      await new Promise((r) => setTimeout(r, 900))
+      await sleep(PAGE_DELAY_MS)
     }
   }
 
-  return all.slice(0, total)
+  return { coins: all.slice(0, total), partial: false }
 }
 
 export interface CoinDetailData {
