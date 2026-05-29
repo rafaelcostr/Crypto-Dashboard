@@ -148,7 +148,7 @@ export function PortfolioAddCoin({
               type="number"
               step="any"
               min="0"
-              placeholder="preço de compra"
+              placeholder="Preço de compra"
               value={avgPrice}
               onChange={(e) => setAvgPrice(e.target.value)}
               className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm outline-none focus:border-[var(--color-accent)]"

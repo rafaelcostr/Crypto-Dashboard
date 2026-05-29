@@ -4,7 +4,7 @@ import { requireCors } from './lib/cors.js'
 export default async function handler(req, res) {
   if (!requireCors(req, res, 'POST, OPTIONS')) return
   if (req.method === 'OPTIONS') return res.status(200).end()
-  if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' })
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido. Use POST.' })
 
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   const body =
     typeof req.body === 'string' ? JSON.parse(req.body) : (req.body ?? {})
   const { title, body: articleBody } = body
-  if (!title) return res.status(400).json({ error: 'title obrigatório' })
+  if (!title) return res.status(400).json({ error: 'Título obrigatório' })
 
   const baseUrl = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1'
   const model = process.env.OPENAI_MODEL || 'gpt-4o-mini'

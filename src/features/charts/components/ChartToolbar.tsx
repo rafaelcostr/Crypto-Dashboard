@@ -19,7 +19,7 @@ function formatRelative(ts: number): string {
 
 export function ChartToolbar({
   chartContainerRef,
-  exportFilename = 'grafico.png',
+  exportFilename = 'gráfico.png',
   updatedAt,
   loading,
 }: ChartToolbarProps) {

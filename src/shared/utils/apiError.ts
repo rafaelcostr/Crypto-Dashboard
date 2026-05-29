@@ -5,7 +5,7 @@ export function formatApiError(error: unknown, context: string): string {
     return `${context}: limite de requisições (429). Aguarde ~1 minuto e clique em Atualizar.`
   }
   if (msg.includes('403')) {
-    return `${context}: acesso bloqueado (403). Configure COINGECKO_API_KEY na Vercel (plano demo grátis) e faça redeploy.`
+    return `${context}: acesso bloqueado (403). Configure a variável COINGECKO_API_KEY na Vercel (plano demo gratuito) e faça um novo deploy.`
   }
   if (msg.includes('400')) {
     return `${context}: parâmetro inválido (400). Tente outro período ou reinicie com npm run dev.`

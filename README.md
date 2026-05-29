@@ -89,7 +89,7 @@ Dashboard completo de criptomoedas com ranking de mercado, portfólio pessoal, g
 
 ```bash
 npm install
-cp .env.example .env   # configure ADMIN_EMAIL, AUTH_JWT_SECRET, SMTP (opcional)
+cp .env.example .env   # configurar ADMIN_EMAIL, AUTH_JWT_SECRET, SMTP (opcional)
 npm run dev
 ```
 

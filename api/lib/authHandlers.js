@@ -96,7 +96,7 @@ export async function handleRegister(body) {
       needsVerification: true,
       message: mail.sent
         ? `Enviamos um e-mail de confirmação para ${email}. Abra o link para ativar sua conta.`
-        : `Conta criada. Configure SMTP para envio automático ou use o link abaixo (modo desenvolvimento).`,
+        : `Conta criada. Configure o SMTP para envio automático ou use o link abaixo (modo desenvolvimento).`,
       email,
       devVerifyLink: mail.devLink || null,
     },
@@ -196,7 +196,7 @@ export async function handleResendVerification(body) {
   return {
     status: 200,
     data: {
-      message: mail.sent ? 'Novo e-mail de confirmação enviado.' : 'Link gerado (modo dev).',
+      message: mail.sent ? 'Novo e-mail de confirmação enviado.' : 'Link gerado (modo desenvolvimento).',
       devVerifyLink: mail.devLink || null,
     },
   }

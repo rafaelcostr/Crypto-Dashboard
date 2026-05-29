@@ -83,7 +83,7 @@ export function AlertsPanel({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Bell className="h-5 w-5 text-[var(--color-warning)]" />
-          <h2 className="text-lg font-semibold">Alertas de Preço</h2>
+          <h2 className="text-lg font-semibold">Alertas de preço</h2>
         </div>
         {canNotify && onEnableNotifications && !notifEnabled && (
           <button
